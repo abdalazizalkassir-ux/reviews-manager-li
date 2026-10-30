@@ -1,358 +1,94 @@
 # Product Review Management System
 
-A RESTful backend application that enables customers to browse products and submit reviews. The system is designed with a clean architecture, relational database design, and strong data integrity rules to provide a scalable foundation for future web and mobile applications.
+A backend REST API that lets customers browse products and share their feedback by submitting reviews. Built with **Node.js**, **Express** and **MySQL**, and designed to serve a future web or mobile application.
 
-## 🚀 Project Overview
-
-The Product Review Management System allows:
-
-- Customer profile management
-- Product management
-- Product review submission
-- Review retrieval by product
-- Data validation and integrity enforcement
-
-The application exposes REST APIs and stores data in a relational database while following normalized database design principles.
+> No authentication is required in this first phase.
 
 ---
 
-## ✨ Features
+## Features
 
-### Customer Management
-
-- Create customer profiles
-- Retrieve customer lists
-- Unique customer identification
-- Basic customer information storage
-
-### Product Management
-
-- Create products
-- Retrieve all products
-- Retrieve product details
-- Unique product identification
-
-### Review Management
-
-Customers can:
-
-- Submit reviews for products
-- Provide ratings from 1 to 5
-- Add textual comments
-
-The system ensures:
-
-- One review per customer per product
-- Every review belongs to a valid customer
-- Every review belongs to a valid product
-- Reviews can be retrieved by product
+- **Users:** create a customer profile and list all customers
+- **Products:** add products with a photo, list all products, get a single product, edit a product
+- **Reviews:** create, list (per product), edit and delete reviews
+- **Validation:** all input is validated with Joi before it is saved
+- **Data integrity:** one review per customer per product, ratings within a valid range, reviews linked to a valid customer and product through foreign keys
+- **Image upload:** product photos are stored on disk with Multer and served from `/uploads`
 
 ---
 
-## 📋 Business Rules
+## Tech Stack
 
-### Review Constraints
-
-- Ratings must be between 1 and 5.
-- A customer cannot review the same product more than once.
-- A review must reference an existing customer.
-- A review must reference an existing product.
-- Required fields must be validated before saving.
-
-### Product Deletion Rules
-
-When a product is deleted:
-
-- Related reviews must be removed or invalidated.
-- Data consistency must be preserved.
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js (ES modules) |
+| Framework | Express 5 |
+| Database | MySQL 8 (`mysql2`) |
+| Validation | Joi |
+| File upload | Multer |
+| Config | dotenv |
+| Dev server | Nodemon |
 
 ---
 
-## 🛠 Technology Stack
+## Project Structure
 
-### Backend
-
-- NestJS
-- TypeScript
-
-### Database
-
-- MySQL / PostgreSQL
-- Relational Database Design
-
-### Documentation
-
-- Swagger OpenAPI
-
-### API Style
-
-- RESTful API
-- JSON Responses
-
----
-
-## 📂 Project Structure
-
-```text
-src/
-├── customers/
-│   ├── controllers/
-│   ├── services/
-│   ├── dto/
-│   └── entities/
-│
-├── products/
-│   ├── controllers/
-│   ├── services/
-│   ├── dto/
-│   └── entities/
-│
-├── reviews/
-│   ├── controllers/
-│   ├── services/
-│   ├── dto/
-│   └── entities/
-│
-├── common/
-│   ├── filters/
-│   ├── exceptions/
-│   └── validators/
-│
+```
+.
+├── app.js              # Server entry point
+├── routers.js          # Route definitions
+├── controller.js       # Business logic and request validation
+├── configrations.js    # Database connection, SQL queries, Multer config
+├── uploads/            # Uploaded product photos (created manually)
 ├── database/
-│
-└── main.ts
+│   └── DB.sql          # Database schema
+├── .env                # Environment variables (NOT committed)
+├── .env.example        # Example environment variables
+└── package.json
 ```
 
 ---
 
-## 🗄 Database Design
+## Getting Started
 
-### Customers Table
+### 1. Prerequisites
 
-| Field | Type |
-|---------|---------|
-| id | UUID / INT |
-| name | VARCHAR |
-| email | VARCHAR |
-| created_at | TIMESTAMP |
+- [Node.js](https://nodejs.org/) 18 or newer
+- [MySQL](https://dev.mysql.com/downloads/) 8.0.16 or newer (needed for `CHECK` constraints)
+- Git
 
-### Products Table
-
-| Field | Type |
-|---------|---------|
-| id | UUID / INT |
-| name | VARCHAR |
-| description | TEXT |
-| price | DECIMAL |
-| created_at | TIMESTAMP |
-
-### Reviews Table
-
-| Field | Type |
-|---------|---------|
-| id | UUID / INT |
-| customer_id | FK |
-| product_id | FK |
-| rating | INT |
-| comment | TEXT |
-| created_at | TIMESTAMP |
-
-### Relationships
-
-```text
-Customer (1) ---- (*) Review (*) ---- (1) Product
-```
-
-Rules:
-
-- One customer can create multiple reviews.
-- One product can receive multiple reviews.
-- One customer can review a product only once.
-
----
-
-## 🌐 API Endpoints
-
-### Customers
-
-#### Create Customer
-
-```http
-POST /api/customers
-```
-
-#### Get All Customers
-
-```http
-GET /api/customers
-```
-
----
-
-### Products
-
-#### Create Product
-
-```http
-POST /api/products
-```
-
-Example:
-
-```json
-{
-  "name": "iPhone 15",
-  "description": "Apple smartphone",
-  "price": 999.99
-}
-```
-
-#### Get All Products
-
-```http
-GET /api/products
-```
-
-#### Get Product By ID
-
-```http
-GET /api/products/:id
-```
-
----
-
-### Reviews
-
-#### Create Review
-
-```http
-POST /api/reviews
-```
-
-Example:
-
-```json
-{
-  "customerId": 1,
-  "productId": 10,
-  "rating": 5,
-  "comment": "Excellent product!"
-}
-```
-
-#### Get Product Reviews
-
-```http
-GET /api/products/:id/reviews
-```
-
----
-
-## ✅ Input Validation
-
-### Customer Validation
-
-- Name is required.
-- Email format must be valid.
-
-### Product Validation
-
-- Product name is required.
-- Price must be positive.
-
-### Review Validation
-
-- Rating is required.
-- Rating must be between 1 and 5.
-- Comment cannot be empty.
-- Customer must exist.
-- Product must exist.
-- Duplicate reviews must be rejected.
-
----
-
-## ⚠️ Error Handling
-
-The API returns meaningful JSON error responses.
-
-Example:
-
-```json
-{
-  "statusCode": 400,
-  "message": "Product already reviewed by this customer",
-  "error": "Bad Request"
-}
-```
-
-Common Errors:
-
-| Status Code | Description |
-|------------|-------------|
-| 400 | Validation error |
-| 404 | Resource not found |
-| 409 | Duplicate review |
-| 500 | Internal server error |
-
----
-
-## 📖 API Documentation
-
-Swagger documentation is available at:
+### 2. Clone and install
 
 ```bash
-/api/docs
+git clone https://github.com/<your-username>/<your-repo>.git
+cd <your-repo>
+npm install
 ```
 
-Features:
+### 3. Set up the database
 
-- Interactive endpoint testing
-- Request examples
-- Response schemas
-- Validation details
+Create the database and import the schema:
 
----
+```bash
+mysql -u root -p -e "CREATE DATABASE db;"
+mysql -u root -p db < database/DB.sql
+```
 
-## 🎯 Success Criteria
+Or in **MySQL Workbench**: *Server → Data Import → Import from Self-Contained File → select `DB.sql` → Start Import*.
 
-The project is considered successful when:
+The API uses MySQL **stored procedures** (`adduser`, `addproduct`, `getsngleproduct`, `editproduct`, `createreview`, `selectReviews`, `dropreview`, `editreview`). Make sure they are included in your database export and imported along with the tables.
 
-✅ Customers can be created and retrieved
+### 4. Configure environment variables
 
-✅ Products can be created and retrieved
+Create a `.env` file in the project root:
 
-✅ Reviews can be submitted and retrieved
+```env
+PORT=3000
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=db
+DB_USER=root
+DB_PASSOWRD=your_password
+```
 
-✅ Customer-product relationships are enforced
-
-✅ Duplicate reviews are prevented
-
-✅ Invalid inputs return meaningful errors
-
-✅ Database normalization is maintained
-
-✅ The application is easy to extend for future releases
-
----
-
-## 📌 Future Enhancements
-
-Potential next-phase improvements:
-
-- Authentication & Authorization
-- User Accounts and Login
-- Product Categories
-- Review Editing
-- Review Deletion
-- Like/Dislike Reviews
-- Average Product Rating
-- Pagination
-- Search and Filtering
-- Image Upload Support
-- Admin Dashboard
-
----
-
-## License
-
-This project was developed as a backend engineering assignment focused on REST API design, relational data modeling, validation, and maintainable software architecture.
+> The password variable is spelled `DB_PASSOWRD` in the code. Keep
