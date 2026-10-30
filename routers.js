@@ -5,7 +5,7 @@ import { upload } from './configrations.js';
 export default function userRoutes() {
     const router = express.Router();
     router.post('/adduser', Controller.addUser);
-    router.get('/getuserslist',Controller.getUsersList);
+    router.get('/',Controller.getUsersList);
     router.post('/addproduct',upload.single('photo'),Controller.addproduct);
     router.get('/getproducts',Controller.getproducts);
     router.post('/getsingleproduct',Controller.getsingleproduct);

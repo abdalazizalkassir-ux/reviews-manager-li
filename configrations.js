@@ -1,14 +1,16 @@
  import mysql from 'mysql2';
  import path from 'path';
  import multer from 'multer';
+ import dotenv from 'dotenv';
+ dotenv.config();
 
 export const db = {
     connection: mysql.createConnection({
-        host: 'localhost',
-        port: 3306,
-        database: 'db',
-        user: 'root',
-        password: 'abdalaziz.abdmysql.123'
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        database: process.env.DB_NAME,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSOWRD
     }),
 
     queries: {

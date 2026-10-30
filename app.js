@@ -1,8 +1,12 @@
 import router from './routers.js';
 import express from'express';//import the required package
+import dotenv from 'dotenv';
+
+const PORT = process.env.PORT;
+dotenv.config();
+
 
 const app = express();
-
 app.use('/uploads',express.static('uploads'))
 
 app.use(express.json());
@@ -12,6 +16,6 @@ app.use('/api',router());
 app.get('/', (req, res) => {
     res.send('Hello, World!');
 });
-app.listen(3000, () => {
-    console.log('Server running at http://localhost:3000');
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
 });
