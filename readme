@@ -91,4 +91,206 @@ DB_USER=root
 DB_PASSOWRD=your_password
 ```
 
-> The password variable is spelled `DB_PASSOWRD` in the code. Keep
+> The password variable is spelled `DB_PASSOWRD` in the code. Keep that spelling, or fix it in `configrations.js` and in your `.env` together.
+
+### 5. Create the uploads folder
+
+```bash
+mkdir uploads
+```
+
+### 6. Run the server
+
+```bash
+npm start
+```
+
+The server runs at `http://localhost:3000` (or your chosen `PORT`) and the API is available under `/api`.
+
+---
+
+## Database Schema
+
+### `users`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INT | Primary key, auto increment |
+| `firstName` | VARCHAR(20) | |
+| `lastName` | VARCHAR(20) | |
+| `email` | VARCHAR(40) | Unique, must end with `@gmail.com` |
+
+### `products`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INT | Primary key, auto increment |
+| `productName` | VARCHAR(20) | |
+| `price` | INT | |
+| `description` | VARCHAR(150) | |
+| `imageUrl` | VARCHAR(50) | Path to the uploaded photo |
+| `rate` | INT | Check constraint: between 1 and 5 |
+
+### `reviews`
+
+| Column | Type | Notes |
+|---|---|---|
+| `product_id` | INT | Foreign key → `products.id` |
+| `user_id` | INT | Foreign key → `users.id` |
+| `rating` | INT | |
+| `review` | VARCHAR(1000) | Text comment |
+| `create_at` | TIMESTAMP | Defaults to the current time |
+
+**Relationships:** one user has many reviews, and one product has many reviews. Each review belongs to exactly one user and one product.
+
+---
+
+## API Endpoints
+
+Base URL: `http://localhost:3000/api`
+
+All data responses are JSON. Request bodies can be JSON or URL-encoded, except for the product endpoints, which use `multipart/form-data` because they include a photo.
+
+### Users
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/adduser` | Create a customer |
+| GET | `/` | List all customers |
+
+**POST `/adduser`**
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john@gmail.com"
+}
+```
+
+### Products
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/addproduct` | Add a product (multipart form) |
+| GET | `/getproducts` | List all products |
+| POST | `/getsingleproduct` | Get one product by ID |
+| POST | `/editproduct` | Edit a product (multipart form) |
+
+**POST `/addproduct`** (`multipart/form-data`)
+
+| Field | Type | Required |
+|---|---|---|
+| `productName` | text | Yes |
+| `price` | number (min 1) | Yes |
+| `description` | text | Yes |
+| `rate` | number (min 1) | No |
+| `photo` | file | Yes |
+
+**POST `/getsingleproduct`**
+
+```json
+{ "id": 1 }
+```
+
+**POST `/editproduct`** (`multipart/form-data`): same fields as `/addproduct`, plus a required `id`.
+
+### Reviews
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/createreview` | Submit a review |
+| POST | `/selectreviews` | Get all reviews for a product |
+| POST | `/editreview` | Edit a review |
+| POST | `/dropreview` | Delete a review |
+
+**POST `/createreview`**
+
+```json
+{
+  "product_id": 1,
+  "user_id": 1,
+  "rating": 4,
+  "review": "Great product!"
+}
+```
+
+**POST `/selectreviews`**
+
+```json
+{ "product_id": 1 }
+```
+
+**POST `/editreview`**: same body as `/createreview`.
+
+**POST `/dropreview`**
+
+```json
+{ "product_id": 1, "user_id": 1 }
+```
+
+> Reviews can only be edited or deleted within 24 hours of being submitted.
+
+---
+
+## Validation Rules
+
+| Entity | Rule |
+|---|---|
+| User | `firstName` and `lastName` are required, non-empty strings |
+| User | `email` must be valid, end with `@gmail.com`, and be unique |
+| Product | `productName` and `description` are required, non-empty strings |
+| Product | `price` is a number, minimum 1 |
+| Product | `rate` is optional, minimum 1 (database allows 1 to 5) |
+| Product | A `photo` file is required |
+| Review | `product_id` and `user_id` are required integers, minimum 1 |
+| Review | `rating` is required, between 0 and 5 |
+| Review | `review` text is required and non-empty |
+| Review | A customer can review the same product only once |
+
+---
+
+## Error Handling
+
+Errors return a clear message and an appropriate HTTP status code:
+
+| Status | Meaning |
+|---|---|
+| `200` | Success |
+| `201` | Resource created |
+| `204` | Resource deleted |
+| `400` | Bad request (for example, email already used, photo missing) |
+| `403` | Action not allowed (review older than 24 hours) |
+| `409` | Conflict (product already reviewed by this customer) |
+| `422` | Validation failed, the message says which field is invalid |
+| `500` | Server error |
+
+Example validation error:
+
+```json
+{ "message": "\"firstName\" is required" }
+```
+
+---
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm start` | Start the server with Nodemon (auto restart on changes) |
+
+---
+
+## Future Improvements
+
+- Authentication and authorization
+- Delete product endpoint with cascading removal of its reviews
+- Pagination for products and reviews
+- Separate data-access layer (routes → controllers → services → repositories)
+- Automated tests
+
+---
+
+## License
+
+ISC
